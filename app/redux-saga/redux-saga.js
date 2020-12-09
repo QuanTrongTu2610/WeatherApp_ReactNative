@@ -1,34 +1,42 @@
-import { SWAP_CURRENCY, CHANGE_BASE_CURRENCY, GET_INIT_CONVERSION, CONVERSION_ERROR, CONVERSION_RESULT } from '../redux/actions/currencies'
-import { takeEvery, select, call, put } from 'redux-saga/effects'
-//fetch data return promises
-const getRate = (currency) => {
+import { GET_ERROR_STATE, GET_RESULT, GET_INIT_STATE } from '../redux/action'
+import { takeEvery, call, put , takeLatest} from 'redux-saga/effects'
+
+const longtitude = '21.028511'
+const latitude = '105.804817'
+const key = '4e68e5d097807d21ca2bd82f24e6b53a'
+//fetch data
+
+// let uri = 'https://api.darksky.net/forecast/4e68e5d097807d21ca2bd82f24e6b53a/21.027763,105.834160'
+// let option = {
+//     method: 'GET',
+//     mode: 'cors'
+// }
+
+// let req = new Request(uri, option)
+
+const fetchWeather = () => {
     return (
-        fetch('https://api.frankfurter.app/latest?from=' + currency)
+        fetch(`https://api.darksky.net/forecast/4e68e5d097807d21ca2bd82f24e6b53a/${longtitude},${latitude}`)
     )
 }
 
-function* fetchLatestConversionRates(action) {
-
+function* getInitState() {
     try {
-        let currency = action.currency
-        if (currency === undefined) {
-            currency = yield select(state => state.currencies.baseCurrency)
-        }
-        const response = yield call(getRate, currency)
+
+        const response = yield call(fetchWeather)
         const result = yield response.json()
 
         if (result.error) {
-            yield put({ type: CONVERSION_ERROR, error: result.error })
+            yield put({ type: GET_ERROR_STATE, error: result.error })
         } else {
-            yield put({ type: CONVERSION_RESULT, result })
+            yield put({ type: GET_RESULT, result})
         }
     } catch (e) {
-        yield put({ type: CONVERSION_ERROR, error: e.message })
+        yield put({ type: GET_ERROR_STATE, error: e.message })
     }
+
 }
 
 export default function* rootSaga() {
-    yield takeEvery(GET_INIT_CONVERSION, fetchLatestConversionRates);
-    yield takeEvery(CHANGE_BASE_CURRENCY, fetchLatestConversionRates);
-    yield takeEvery(SWAP_CURRENCY, fetchLatestConversionRates);
+    yield takeEvery(GET_INIT_STATE, getInitState)
 }

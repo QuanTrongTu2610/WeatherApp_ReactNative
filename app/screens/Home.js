@@ -1,92 +1,286 @@
 import React, { Component } from 'react'
-import { StatusBar } from 'react-native'
-import Container from '../components/Container/Container'
-import Logo from '../components/Logo/logo'
-import InputButton from '../components/TextInput/TextInput'
-import RefreshButton from '../components/Buttons/Button'
-import LastConverted from '../components/Text/LastConverted'
-import Header from '../components/Header/Header'
-import { swapCurrency, changeAmount, getInitialConversion } from '../redux/actions/currencies'
+import { Image, Text, View, Dimensions, TouchableOpacity, FlatList, ImageBackground, ScrollView } from 'react-native'
+import EStyleSheet from 'react-native-extended-stylesheet'
+import DataList from '../components/data/time'
+import Item from './StatusList'
+import DayList from './Daylist'
+import dayData from '../components/data/day'
+import Separator from '../components/separator/Separator'
+import Detail from './Detail'
 import { connect } from 'react-redux'
+import { getInit } from '../redux/action'
 
+const width = Dimensions.get('window').width
+const height = Dimensions.get('window').height
+
+const times = []
+const days = []
+
+const styles = EStyleSheet.create({
+    $primaryColor: '$darkBlue',
+    $secondColor: '$orange',
+    totalBackGround: {
+        flex: 1,
+    },
+    header: {
+        marginTop: height / 50,
+        marginLeft: width / 30,
+        marginRight: width / 30,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+
+    },
+    iconSearch: {
+        resizeMode: 'contain',
+        height: 25,
+        width: 25,
+    },
+    title: {
+        color: 'white',
+        fontSize: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontWeight: 'bold'
+    },
+    body: {
+        marginTop: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'row'
+
+    },
+    iconWeather: {
+        resizeMode: 'contain',
+        width: 30,
+        height: 30,
+    },
+    degree: {
+        marginLeft: 20,
+        fontSize: 70,
+        color: 'white'
+    },
+    information: {
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    textStatus: {
+        color: 'white',
+        fontSize: 16
+    },
+    containTextStatus: {
+        justifyContent: 'center',
+        flexDirection: 'row',
+        marginTop: 15,
+        marginBottom: 20,
+        margin: 30,
+    },
+
+    dayItem: {
+        // alignItems: 'center'
+    }
+})
 
 class Home extends Component {
-
-    componentWillMount() {
-        this.props.dispatch(getInitialConversion())
+    componentDidMount() {
+        this.props.dispatch(getInit())
     }
 
-    ActionBase = () => {
-        const { navigation } = this.props
-        navigation.navigate('Currency', { title: 'Base Currrency', type: 'CHANGE_BASE_CURRENCY' })
+    changeDegreeFormat = (degree) => {
+        const result = (degree - 32) / 1.8
+        return result.toFixed(0)
     }
 
-    ActionQuote = () => {
-        const { navigation } = this.props
-        navigation.navigate('Currency', { title: 'Quote Currency', type: 'CHANGE_QUOTE_CURRENCY' })
-    }
-    /*done */
-    ActionReverse = () => {
-        this.props.dispatch(swapCurrency())
+    timeConvert = (time) => {
+        const converTime = new Date(time * 1000)
+        const result = converTime.getHours()
+        return result
     }
 
-    ActionHeader = () => {
-        this.props.navigation.navigate('Option');
-    }
-    /* done */
-    ActionChangeText = (amount) => {
-        this.props.dispatch(changeAmount(amount))
+    renderDay = (item) => {
+        var result = 'hello'
+        var day = new Date(item['time'] * 1000).getDay()
+        switch (day) {
+            case 0:
+                result = 'Sunday'
+                break;
+            case 1:
+                result = 'Monday'
+                break;
+            case 2:
+                result = 'Tuesday'
+                break;
+            case 3:
+                result = 'Wednesday'
+                break;
+            case 4:
+                result = 'Thurday'
+                break;
+            case 5:
+                result = 'Friday'
+                break;
+            case 6:
+                result = 'Saturday'
+                break;
+        }
+        return result
     }
 
+    renderIcon = (item) => {
+        var result = null
+        switch (item['icon']) {
+            case 'clear-day':
+                result = require('../components/weather-icons/clear-day.png')
+                break;
+            case 'clear-night':
+                result = require('../components/weather-icons/clear-night.png')
+                break;
+            case 'rain':
+                result = require('../components/weather-icons/rain.png')
+                break;
+            case 'snow':
+                result = require('../components/weather-icons/snow.png')
+                break;
+            case 'sleet':
+                result = require('../components/weather-icons/sleet.png')
+                break;
+            case 'wind':
+                result = require('../components/weather-icons/wind.png')
+                break;
+            case 'fog':
+                result = require('../components/weather-icons/fog.png')
+                break;
+            case 'cloudy':
+                result = require('../components/weather-icons/cloudy.png')
+                break;
+            case 'partly-cloudy-day':
+                result = require('../components/weather-icons/partly-cloudy-day.png')
+                break;
+            case 'partly-cloudy-night':
+                result = require('../components/weather-icons/partly-cloudy-night.png')
+                break;
+        }
+
+        return result
+    }
     render() {
-        let quotePrice = (this.props.amount * this.props.conversionRate).toFixed(2)
-        if (this.props.isFetching) {
-            quotePrice = '....';
-        }
         return (
-            <Container primaryColor={this.props.color}>
-                <StatusBar translucent={false} barStyle='default' />
-                <Header onPress={this.ActionHeader}></Header>
-                <Logo primaryColor={this.props.color}></Logo>
-                {/* Props */}
-                <InputButton onPress={this.ActionBase} buttonText={this.props.baseCurrency} defaultValue={this.props.amount.toString()} onChangeText={this.ActionChangeText}></InputButton>
-                <InputButton onPress={this.ActionQuote} buttonText={this.props.quoteCurrency} value={quotePrice.toString()} editable={false}></InputButton>
-                <LastConverted
-                    base={this.props.baseCurrency}
-                    quote={this.props.quoteCurrency}
-                    conversionRate={this.props.conversionRate.toFixed(2).toString()}
-                    date={this.props.date}>
-                </LastConverted>
-                <RefreshButton onPress={this.ActionReverse} Text='Reverse Currency'></RefreshButton>
-            </Container>
-        );
+            <ImageBackground source={require('../components/image-background/background.gif')} style={styles.totalBackGround}>
+                <View style={styles.header}>
+                    <TouchableOpacity>
+                        <Image style={styles.iconSearch} source={require('../components/icons/more.png')}></Image>
+                    </TouchableOpacity>
+                    <Text style={styles.title}>Weather Forcaster</Text>
+                </View>
+                <View style={styles.body}>
+                    <Image style={styles.iconWeather} source={this.renderIcon(this.props.data[0])}></Image>
+                    <View style={{ flexDirection: 'row' }}>
+                        <Text style={styles.degree}>{this.changeDegreeFormat(this.props.temperature)}</Text>
+                        <Text style={{ color: styles.$secondColor, fontSize: 50 }}>°C</Text>
+                    </View>
+                </View>
+                <View style={styles.information}>
+                    <Text style={{ color: 'white', letterSpacing: 0.5, fontSize: 20, fontWeight: 'bold' }}>{this.props.location}</Text>
+                    <Text style={{ color: styles.$secondColor, fontSize: 16 }}>{this.props.status}</Text>
+                </View>
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    showsHorizontalScrollIndicator={false}
+                >
+                    <View style={styles.containTextStatus}>
+                        <Text style={styles.textStatus}>{this.props.overall}</Text>
+                    </View>
+                    {/*Scroll View*/}
+
+                    <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                        <Text style={{ color: styles.$secondColor, fontSize: 20, fontWeight: 'bold' }}>Overall Forcaster</Text>
+                        <FlatList
+                            horizontal={true}
+                            data={this.props.data}
+                            renderItem={({ item }) => {
+                                return (
+                                    <View>
+                                        <Item
+                                            time={this.timeConvert(item['time'])}
+                                            source={
+                                                this.renderIcon(item)
+                                            }
+                                            degree={this.changeDegreeFormat(item['temperature'])}
+                                        ></Item>
+                                    </View>
+                                )
+                            }}
+                            keyExtractor={item => item}
+                            showsHorizontalScrollIndicator={false}
+                        >
+                        </FlatList>
+                    </View>
+                    <Separator></Separator>
+                    <View style={{
+                        marginTop: 10,
+                        marginBottom: 10,
+                        marginLeft: width / 10,
+                        marginRight: width / 30,
+                    }}>
+                        <FlatList
+                            data={this.props.days}
+                            renderItem={
+                                ({ item }) => {
+                                return (
+                                    <View style={styles.dayItem}>
+                                        <DayList
+                                            name={this.renderDay(item)}
+                                            source={this.renderIcon(item)}
+                                            minTemp={this.changeDegreeFormat(item['temperatureLow'])}
+                                            maxTemp={this.changeDegreeFormat(item['temperatureHigh'])}
+                                        >
+                                        </DayList>
+                                    </View>
+                                )
+                            }}
+                            keyExtractor={item => item}
+                            showsHorizontalScrollIndicator={false}
+                        >
+                        </FlatList>
+                    </View>
+                    <Separator></Separator>
+                    <View style={{ flexDirection: 'row' }}>
+                        <View style={{ justifyContent: 'flex-start', marginTop: 10, marginBottom: 10, marginLeft: 80, marginRight: 80 }}>
+                            <Detail title={'ClOUD COVER'} informarion={this.props.cloudCover}></Detail>
+                            <Detail title={'OZONE'} informarion={this.props.ozone}></Detail>
+                            <Detail title={'UV INDEX'} informarion={this.props.uv}></Detail>
+                            <Detail title={'FEELS LIKE'} informarion={this.props.feels}></Detail>
+                        </View>
+                        <View style={{ justifyContent: 'flex-start', marginTop: 10, marginBottom: 10, marginLeft: 50 }}>
+                            <Detail title={'WIND'} informarion={this.props.wind}></Detail>
+                            <Detail title={'PRESSURE'} informarion={this.props.pressure}></Detail>
+                            <Detail title={'VISIBILITY'} informarion={this.props.visibility}></Detail>
+                        </View>
+                    </View>
+                </ScrollView>
+            </ImageBackground >
+        )
     }
 }
 
 
-const mapStateToProps = (state) => {
-    const baseCurrency = state.currencies.baseCurrency
-    const quoteCurrency = state.currencies.quoteCurrency
-    const amount = state.currencies.amount
-    /*to fetch */
-    const conversionSelector = state.currencies.conversions[baseCurrency] || {}
-    const rates = conversionSelector.rates|| {}
-    const conversionRate = rates[quoteCurrency] || 0  
-
-    const isFetching = conversionSelector.isFetching
-    const date = conversionSelector.date
-    const color = state.themes.primaryColor
-    return (
-        {
-            baseCurrency,
-            quoteCurrency,
-            amount,
-            conversionRate,
-            isFetching,
-            date,
-            color,
-        }
-    )
+mapStatetoProps = (state) => {
+    const current = state.currently
+    return ({
+        days: state.daily['data'],
+        data: state.hourly['data'],
+        location: state.timeZone,
+        temperature: current['temperature'],
+        status: state.currently['summary'],
+        overall: state.hourly.summary,
+        cloudCover: current['cloudCover'],
+        wind: current['windSpeed'],
+        ozone: current['ozone'],
+        pressure: current['pressure'],
+        visibility: current['visibility'],
+        uv: current['uvIndex'],
+        feels: current['apparentTemperature'],
+    })
 }
 
-export default connect(mapStateToProps)(Home);
+export default connect(mapStatetoProps)(Home)

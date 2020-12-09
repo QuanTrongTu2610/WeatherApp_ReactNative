@@ -1,27 +1,18 @@
 import React from 'react'
+import Home from './screens/Home'
 import EStyleSheet from 'react-native-extended-stylesheet'
-import Config from '../app/config/config'
 import { Provider } from 'react-redux'
-import Store from './redux/store/store'
+import Store from './redux/store'
 
 EStyleSheet.build({
-    $primaryBlue: '#4F6D7A',
-    $primaryOrange: '#D57A66',
-    $primaryGreen: '#00BD9D',
-    $primaryPurple: '#9E768F',
-
-    $lightGrey: '#F0F0F0',
-    $border: '#979797',
-    $inputText: '#797979',
-    $darkText: '#343434'
+    $darkBlue: '#03002e',
+    $orange: '#ff8b3d'
 })
 
-const App = () => {
+export default App = () => {
     return (
-        < Provider store={Store} >
-            <Config></Config>
-        </Provider >
+        <Provider store={Store}>
+            <Home></Home>
+        </Provider>
     )
 }
-
-export default App
